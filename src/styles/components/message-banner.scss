@@ -1,0 +1,46 @@
+.message-banner {
+  position: fixed;
+  background: red;
+  color: white;
+  width: 100%;
+  top: -100px;
+  height: 0;
+  left: 0;
+  padding: 1em 0;
+  transition-duration: 0.6s;
+
+  &__content {
+    text-align: center;
+    position: relative;
+    max-width: $container-width - 100px;
+    margin: 0 auto;
+  }
+
+  &__close {
+    border: none;
+    background: none;
+    color: white;
+    position: absolute;
+    right: -50px;
+    top: -5px;
+
+    &:focus {
+      outline:0;
+    }
+  }
+
+  &--showing {
+    top: 0;
+    height: unset;
+  }
+}
+
+@include mobile {
+  .message-banner {
+    &__close {
+      position: fixed;
+      right: 0;
+      top: 10px;
+    }
+  }
+}
