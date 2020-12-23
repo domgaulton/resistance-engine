@@ -1,5 +1,5 @@
 {
-  "name": "firebase-boilerplate",
+  "name": "resistance-engine",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -32,5 +32,17 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  }
+  },
+  "description": "## Requirements * Firebase account with Auth, Firestore and Spark (free) account * Heroku account",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/domgaulton/resistance-engine.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/domgaulton/resistance-engine/issues"
+  },
+  "homepage": "https://github.com/domgaulton/resistance-engine#readme"
 }
