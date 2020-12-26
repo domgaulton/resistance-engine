@@ -12,11 +12,11 @@ function Game(props) {
   const userName = window.localStorage.getItem('resistanceEngineUserName');
   const userIndex = players && players.indexOf(userName);
   const playersLength = players && players.length;
-  const roundSelection = gameObject[`round${gameObject.round}Selection`];
+  const roundSelection = gameObject[`round${round}Selection`];
   const roundSelectionLength = roundSelection && roundSelection.length;
-  const roundVote = gameObject[`round${gameObject.round}Vote`];
+  const roundVote = gameObject[`round${round}Vote`];
   const roundVoteLength = roundVote && roundVote.length;
-  const roundReveal = gameObject[`round${gameObject.round}Reveal`];
+  const roundReveal = gameObject[`round${round}Reveal`];
   const roundRevealLength = roundReveal && roundReveal.length;
   
   // Game Dynamics
@@ -47,6 +47,9 @@ function Game(props) {
   useEffect(() => {
     if (votes.length) {
       setSelection(props.game, round, votes);
+      if ( votes.length === howManyVotes(gameObject) ) {
+        setVotes([]);
+      }
     }
   }, [setSelection, props.game, round, votes]);
 
@@ -104,7 +107,6 @@ function Game(props) {
   }
 
   const handleRoundReveal = vote => {
-    // console.log(props.game, gameObject.round, vote)
     setReveal(props.game, gameObject.round, userIndex, vote)
     setPlayedHand(true)
   }
@@ -145,7 +147,6 @@ function Game(props) {
     passDealer(props.game, round, nextDealer)
   }
 
-
   return (
     <React.Fragment>
       <div className="gameScreen">
@@ -163,7 +164,7 @@ function Game(props) {
           ) : null}
         </div>
         <h1>{gameObject.gameName}</h1>
-        <h2>Round {gameObject.round + 1} - {dealerName} is the dealer</h2>
+        <h2>Round {gameObject.round + 1}{dealer !== '' ? ` - ${dealerName} is the dealer` : ''}</h2>
         <h3>{getRoundPhase()}</h3>
 
         <ul>
@@ -173,8 +174,8 @@ function Game(props) {
                 key={player}
                 className={roundSelection && roundSelection.includes(index) ? 'voted' : ''}
               >
-                {userIndex === gameObject.dealer && roundSelectionLength !== howManyVotes(gameObject) ? (
-                  <button disabled={votes.includes(index)} onClick={() => handleVoteClick(index)}>Vote</button>
+                {userIndex === dealer && roundSelectionLength !== howManyVotes(gameObject) ? (
+                  <button className="button button--vote" disabled={votes.includes(index)} onClick={() => handleVoteClick(index)}>Vote</button>
                 ) : (
                   null
                 )}
@@ -186,11 +187,8 @@ function Game(props) {
           })}
         </ul>
 
-        <h3>Personal Info</h3>
         {spiesSet ? (
-          <div>
-            <p>You are {resistanceOrSpy() ? 'a spy!' : 'in the resistance!'}</p>
-          </div>
+          <h3>You are {resistanceOrSpy() ? 'a spy!' : 'in the resistance!'}</h3>
         ) : (
           null
         )}
@@ -199,7 +197,9 @@ function Game(props) {
           allVoted && !votePassed ? (
             <React.Fragment>
               <p>Vote didn't pass</p>
-              <button onClick={() => handlePassDealer()}>Pass the Dealer</button>
+              <div className="button-wrapper">
+                <button className="button button--neutral" onClick={() => handlePassDealer()}>Pass the Dealer</button>
+              </div>
             </React.Fragment>
           ) : null
         ) : (
@@ -208,7 +208,7 @@ function Game(props) {
 
         {allRevealed ? (
           isDealer ? (
-            <button onClick={() => handleNextRound()}>Next Round</button>
+            <button className="button button--neutral" onClick={() => handleNextRound()}>Pass the Dealer</button>
           ) : (
             null
           )
@@ -218,10 +218,11 @@ function Game(props) {
           votePassed && !allRevealed ? (
             isAccused ? (
               <React.Fragment>
-                <p><strong>Vote was passed and you were nominated</strong></p>
-                <p>What card will you play?</p>
-                <button disabled={playedHand || resistanceOrSpy() === false} onClick={() => handleRoundReveal(true)}>Spy</button>
-                <button disabled={playedHand} onClick={() => handleRoundReveal(false)}>Resistance</button>
+                <p>Vote was passed and you were nominated - What card will you play?</p>
+                <div className="button-wrapper">
+                  <button className="button button--positive" disabled={playedHand} onClick={() => handleRoundReveal(false)}>Resistance</button>
+                  <button className="button button--negative" disabled={playedHand || resistanceOrSpy() === false} onClick={() => handleRoundReveal(true)}>Spy</button>
+                </div>
               </React.Fragment>
             ) : (
               <p>Waiting for nominated players to show their hand</p>
@@ -231,9 +232,11 @@ function Game(props) {
 
         {selectionFinished && !allVoted ? (
           <React.Fragment>
-            <h3>Are you happy with this selection?</h3>
-            <button disabled={userHasVoted} onClick={() => handleRoundVote(true)}>Yes</button>
-            <button disabled={userHasVoted} onClick={() => handleRoundVote(false)}>No</button>
+            <p>Are you happy with this selection?</p>
+            <div className="button-wrapper">
+              <button className="button button--positive" disabled={userHasVoted} onClick={() => handleRoundVote(true)}>Yes</button>
+              <button className="button button--negative" disabled={userHasVoted} onClick={() => handleRoundVote(false)}>No</button>
+            </div>
           </React.Fragment>
         ) : (
           null
@@ -242,15 +245,19 @@ function Game(props) {
         {isAdmin && !spiesSet ? (
           <div>
             <h3>As Admin - Click to randomly allocate spies and the dealer</h3>
-            <button disabled={gameObject.players.length < 5} onClick={() => handleSetSpies()}>Set Spies</button>
+            <div className="button-wrapper">
+              <button className="button button--neutral" disabled={gameObject.players.length < 5} onClick={() => handleSetSpies()}>Set Spies</button>
+            </div>
           </div>
         ) : (
           null
         )}
 
         <div style={{marginTop: '100px'}}>
-          <p>Return to homescreen</p>
-          <button onClick={() => resetLocalStorage()}>End Game</button>
+          <p>Return to homescreen - this will log you out of the game</p>
+          <div className="button-wrapper">
+            <button className="button button--end-game" onClick={() => resetLocalStorage()}>End Game</button>
+          </div>
         </div>
       </div>
       
