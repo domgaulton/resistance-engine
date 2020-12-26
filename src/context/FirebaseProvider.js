@@ -14,13 +14,6 @@ function FirebaseProvider(props) {
     firestore.collection(pageCollection).doc(gameName).set({
       gameName,
       admin: adminName,
-      // started: false,
-      round0Selection: [],
-      round0Votes: [],
-      round2: {},
-      round3: {},
-      round4: [],
-      round5: [],
       players: [
         adminName
       ],
