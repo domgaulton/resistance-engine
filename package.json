@@ -9,14 +9,15 @@
     "react": "^16.9.0",
     "react-dom": "^16.9.0",
     "react-router-dom": "^5.0.1",
-    "react-scripts": "3.1.1"
+    "react-scripts": "3.1.1",
+    "web-vitals": "^0.2.4"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "firebase-build-deploy": "git checkout master && git fetch && git pull && npm run build && firebase deploy -P production"
+    "firebase-build-deploy": "git checkout main && git fetch && git pull && npm run build && firebase deploy"
   },
   "eslintConfig": {
     "extends": "react-app"
