@@ -1,4 +1,4 @@
-import firebase from 'firebase/app';
+import firebase from 'firebase/firebase';
 import 'firebase/firestore';
 
 const firebaseConfig = {
@@ -16,7 +16,7 @@ const firebaseApp = firebase.initializeApp(firebaseConfig);
 const firestore = firebaseApp.firestore();
 
 // This is a named export
-export { firestore };
+export { firestore, firebase };
 
 // this is a default export
 export default firebaseApp;

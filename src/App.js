@@ -3,7 +3,7 @@ import React from 'react';
 
 function App() {
   return (
-    <div className="dbs-app-wrapper">
+    <div className="app-wrapper">
       <Router />
     </div>
   );

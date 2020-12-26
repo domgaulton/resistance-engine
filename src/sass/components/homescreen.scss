@@ -1,0 +1,47 @@
+// .homescreen {
+//   display: flex;
+//   align-items: center;
+//   justify-content: center;
+// }
+
+.gameScreen {
+  
+  &__rounds {
+    margin-top: 20px;
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
+  }
+
+  &__round-marker {
+    width: 20px;
+    height: 20px;
+    border: 1px solid grey;
+    border-radius: 10px;
+
+    &.lost {
+      background: red;
+    }
+
+    &.won {
+      background: green;
+    }
+  }
+
+  ul {
+    list-style-type: none;
+    padding: 0;
+
+    li {
+      margin-bottom: 10px;
+
+      &.voted {
+        color: red;
+      }
+
+      button {
+        margin-right: 5px;
+      }
+    }
+  }
+}
