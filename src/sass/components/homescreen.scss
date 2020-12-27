@@ -44,11 +44,17 @@
       }
     }
   }
+
+  &__restart-game {
+    margin-top: 80px;
+    font-size: 0.8em;
+  }
 }
 
 .button-wrapper {
   display: flex;
   justify-content: space-around;
+  margin: 10px auto;
 }
 
 .button {

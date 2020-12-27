@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { firestore, firebase } from "../firebase/firebase";
-import howManySpies from '../helpers/howManySpies'
 
 const Context = React.createContext();
 export const FirebaseConsumer = Context;
@@ -12,7 +11,7 @@ function FirebaseProvider(props) {
   const validatePrompt = (promptText) => {
     let input = prompt(promptText);
 
-    if (input == null || input == "") {
+    if (input === null || input === "") {
       alert("You must enter a name!");
       return validatePrompt(promptText);
     } else if (!/^[a-zA-Z0-9]+$/.test(input)) {

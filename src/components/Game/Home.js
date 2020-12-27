@@ -50,7 +50,7 @@ function Game(props) {
         setVotes([]);
       }
     }
-  }, [setSelection, props.game, round, votes]);
+  }, [setSelection, props.game, round, votes, gameObject]);
 
   useEffect(() => {
     if ( characterRevealed === true ) {
@@ -111,7 +111,7 @@ function Game(props) {
   const getOtherSpies = () => {
     let spyArray = []
     spies.map(spyIndex => {
-      spyArray.push(` ${players[spyIndex]}`)
+      return spyArray.push(` ${players[spyIndex]}`)
     })
     return spyArray;
   }
@@ -160,7 +160,6 @@ function Game(props) {
     const spies = roundReveal.filter(vote => vote.vote === true);
     // TO DO - get how many spies required
     const spiesPassed = spies.length > 0
-    console.log(props.game, spiesPassed)
     let nextDealer = dealer + 1;
     if ( nextDealer >= playersLength ) {
       nextDealer = 0;
@@ -230,7 +229,7 @@ function Game(props) {
                   <p>{`(The other spies are; ${getOtherSpies()}`})</p>
                 ) : null}
               </React.Fragment>
-            ) : <button className="button button--action" onClick={() => showHideCharacter()}>Reveal my role</button> }
+            ) : <div className="button-wrapper"><button className="button button--action" onClick={() => showHideCharacter()}>Reveal my role</button></div> }
           </React.Fragment>
         ) : (
           null
@@ -296,7 +295,7 @@ function Game(props) {
           null
         )}
 
-        <div style={{marginTop: '100px'}}>
+        <div className="gameScreen__restart-game">
           <p>Return to homescreen - this will log you out of the game</p>
           <div className="button-wrapper">
             <button className="button button--end-game" onClick={() => resetLocalStorage()}>End Game</button>
