@@ -72,18 +72,18 @@ function Game(props) {
 
   const getRoundPhase = () => {
     if ( !spiesSet ) {
-      return 'Waiting for admin to set spies...'
+      return 'Waiting for 5 players to sign in so that the admin can randomly allocate spies.'
     } else if ( !selectionFinished ) {
       if ( round === 0 ) {
-        return `Spies Set! Dealer to select ${howManyNominations(gameObject)} names...`
+        return `Spies Set! Dealer to select ${howManyNominations(gameObject)} names.`
       } else {
-        return `Dealer to select ${howManyNominations(gameObject)} names...`
+        return `Dealer to select ${howManyNominations(gameObject)} names.`
       }
     } else if ( !allVoted ) {
       return 'Names Selected - Are you happy with selection?'
     } else if ( !allRevealed ) {
       if ( !votePassed ) {
-        return 'Votes did not pass - dealer to pass'
+        return 'Votes did not pass - dealer to pass.'
       } else {
         return `Votes have passed - waiting for players to reveal. ${howManySpiesRequired(gameObject)} sp${howManySpiesRequired(gameObject) === 1 ? 'y' : 'ies'} need to sabotage!`;
       }
@@ -183,7 +183,7 @@ function Game(props) {
           {[...Array(5)].map((item, index) => {
             const roundVoted = gameObject.rounds && gameObject.rounds[index] !== undefined;
             return (
-              <div className={`gameScreen__round-marker ${roundVoted ? gameObject.rounds[index].vote ? 'lost' : 'won' : ''}`} />
+              <div key={index} className={`gameScreen__round-marker ${roundVoted ? gameObject.rounds[index].vote ? 'lost' : 'won' : ''}`} />
             )
           })}
         </div>
@@ -196,6 +196,7 @@ function Game(props) {
         <h2>Round {gameObject.round + 1}{dealer !== '' ? ` - ${dealerName} is the dealer` : ''}</h2>
         <h3>{getRoundPhase()}</h3>
 
+        <p><strong>Players:</strong></p>
         <ul>
           {gameObject.players && gameObject.players.map((player, index) => {
             const nameObject = (
@@ -287,7 +288,7 @@ function Game(props) {
 
         {isAdmin && !spiesSet ? (
           <div>
-            <h3>As Admin - Click to randomly allocate spies and the dealer</h3>
+            <p>As Admin - Click to randomly allocate spies and the dealer</p>
             <div className="button-wrapper">
               <button className="button button--action" disabled={gameObject.players.length < 5} onClick={() => handleSetSpies()}>Set Spies</button>
             </div>

@@ -41,8 +41,8 @@ function App(props) {
   // const userName = gameObject.name || window.localStorage.getItem('resistanceEngineName');
 
   return gameObject.name === undefined && window.localStorage.getItem('resistanceEngineGameName') === null ? (
-    <div className="homescreen">
-      <div className="homescreen_admin">
+    <div className="homeScreen">
+      <div className="homeScreen_admin">
         <h1>Resistance Engine</h1>
         <p>Anon voting and engine for playing resistance</p>
         <h3>Start a new game (create host and admin)</h3>

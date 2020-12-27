@@ -27,6 +27,7 @@ export default gameObject => {
       break
     default:
       spies = 1;
+    break
   }
 
   return spies

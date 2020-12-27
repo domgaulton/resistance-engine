@@ -11,7 +11,6 @@ function FirebaseProvider(props) {
 
   const validatePrompt = (promptText) => {
     const input = prompt(promptText);
-    console.log(input)
     if ( input === null ) {
       return;
     } else if (input === "") {
@@ -21,6 +20,7 @@ function FirebaseProvider(props) {
       alert("Please only enter letters or numbers");
       return validatePrompt(promptText)
     }
+    return input;
   }
 
   const handleCreateGame = () => {
@@ -128,26 +128,6 @@ function FirebaseProvider(props) {
   }
 
   const handleSetSpies = (gameName, players) => {
-    // // First assign random spies
-    // let spies = 2;
-    
-    // switch(players) {
-    //   case 5:
-    //   case 6:
-    //     spies = 2;
-    //     break
-    //   case 7:
-    //   case 8:
-    //   case 9:
-    //     spies = 3;
-    //     break;
-    //   case 10:
-    //     spies = 4
-    //     break;
-    //   default:
-    //     spies = 2;
-    // }
-    // console.log(howManySpies(players))
     let randomArray = [];
     let i;
     for (i = 0; i < howManySpies(players); i++) {
@@ -263,7 +243,6 @@ function FirebaseProvider(props) {
 
   // Next Round
   const handleNextRound = (gameName, round, vote, dealer) => {
-    console.log(vote)
     const collection = firestore.collection(pageCollection).doc(gameName)
     collection.update({
       rounds: firebase.firestore.FieldValue.arrayUnion({round, vote}),
@@ -292,7 +271,6 @@ function FirebaseProvider(props) {
   const handlePassDealer = (gameName, round, dealer) => {
     const dynamicSelection = `round${round}Selection`;
     const dynamicVote = `round${round}Vote`;
-    console.log(dynamicSelection, dynamicVote)
     const collection = firestore.collection(pageCollection).doc(gameName)
     collection.update({
       [dynamicSelection]: firebase.firestore.FieldValue.delete(),
@@ -318,7 +296,6 @@ function FirebaseProvider(props) {
   }
 
   const handleResetApp = () => {
-    console.log('reset')
     setPageState(prevState => ({
       ...prevState,
       gameObject: {},
