@@ -46,9 +46,9 @@ function App(props) {
         <h1>Resistance Engine</h1>
         <p>Anon voting and engine for playing resistance</p>
         <h3>Start a new game (create host and admin)</h3>
-        <button onClick={() => handleCreateGame()}>Create Game</button>
+        <button className="button button--positive" onClick={() => handleCreateGame()}>Create A New Game</button>
         <h3>Join existing game</h3>
-        <button onClick={() => handleJoinGame()}>Join Game</button>
+        <button className="button button--action" onClick={() => handleJoinGame()}>Join An Existing Game</button>
       </div>
     </div>
   ) : (
