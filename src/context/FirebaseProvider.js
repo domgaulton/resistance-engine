@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { firestore, firebase } from "../firebase/firebase";
+import howManySpies from '../helpers/howManySpies';
 
 const Context = React.createContext();
 export const FirebaseConsumer = Context;
@@ -9,93 +10,100 @@ const pageCollection = process.env.REACT_APP_FIREBASE_PAGE_COLLECTION;
 function FirebaseProvider(props) {
 
   const validatePrompt = (promptText) => {
-    let input = prompt(promptText);
-
-    if (input === null || input === "") {
+    const input = prompt(promptText);
+    console.log(input)
+    if ( input === null ) {
+      return;
+    } else if (input === "") {
       alert("You must enter a name!");
       return validatePrompt(promptText);
     } else if (!/^[a-zA-Z0-9]+$/.test(input)) {
       alert("Please only enter letters or numbers");
       return validatePrompt(promptText)
     }
-    return input
   }
 
   const handleCreateGame = () => {
     const gameName = validatePrompt('What is the name of the game?')
-    const adminName = validatePrompt('What is your name?')
-    firestore.collection(pageCollection).doc(gameName).set({
-      gameName,
-      admin: adminName,
-      gameStarted: false,
-      players: [
-        adminName
-      ],
-      round: 0,
-      dealer: '',
-      rounds: [],
-    })
-    .then(() => {
-      firestore.collection(pageCollection).doc(gameName)
-      .onSnapshot({
-        includeMetadataChanges: true
-      },response => {
-        const update = response.data();
-        setPageState(prevState => ({
-          ...prevState,
-          gameObject: update,
-        }))
-      });
-      window.localStorage.setItem('resistanceEngineGameName', gameName)
-      window.localStorage.setItem('resistanceEngineUserName', adminName)
-    })
-    .catch(error => {
-      // console.error("Error writing document: ", error);
-      console.log(error)
-    });
+    if ( gameName ) {
+      const adminName = validatePrompt('What is your name?')
+      if ( adminName ) {
+        firestore.collection(pageCollection).doc(gameName).set({
+          gameName,
+          admin: adminName,
+          gameStarted: false,
+          players: [
+            adminName
+          ],
+          round: 0,
+          dealer: '',
+          rounds: [],
+        })
+        .then(() => {
+          firestore.collection(pageCollection).doc(gameName)
+          .onSnapshot({
+            includeMetadataChanges: true
+          },response => {
+            const update = response.data();
+            setPageState(prevState => ({
+              ...prevState,
+              gameObject: update,
+            }))
+          });
+          window.localStorage.setItem('resistanceEngineGameName', gameName)
+          window.localStorage.setItem('resistanceEngineUserName', adminName)
+        })
+        .catch(error => {
+          // console.error("Error writing document: ", error);
+          console.log(error)
+        });
+      }
+    }
   }
 
   const handleJoinGame = () => {
     const gameName = validatePrompt('What is name of the game?')
-    const checkCollection = firestore.collection(pageCollection).doc(gameName)
-    checkCollection.get().then(response => {
-      if (response.exists) {
-        const update = response.data();
-        if ( !update.gameStarted ) {
-          const userName = validatePrompt('What is your name?')
-          const collection = firestore.collection(pageCollection).doc(gameName)
-          collection.update({
-            players: firebase.firestore.FieldValue.arrayUnion(userName),
-          })
-          .then(() => {
-            firestore.collection(pageCollection).doc(gameName)
-            .onSnapshot({
-              includeMetadataChanges: true
-            },response => {
-              const update = response.data();
-              setPageState(prevState => ({
-                ...prevState,
-                gameObject: update,
-              }))
+    if ( gameName ) {
+      const checkCollection = firestore.collection(pageCollection).doc(gameName)
+      checkCollection.get().then(response => {
+        if (response.exists) {
+          const update = response.data();
+          if ( !update.gameStarted ) {
+            const userName = validatePrompt('What is your name?')
+            const collection = firestore.collection(pageCollection).doc(gameName)
+            collection.update({
+              players: firebase.firestore.FieldValue.arrayUnion(userName),
+            })
+            .then(() => {
+              firestore.collection(pageCollection).doc(gameName)
+              .onSnapshot({
+                includeMetadataChanges: true
+              },response => {
+                const update = response.data();
+                setPageState(prevState => ({
+                  ...prevState,
+                  gameObject: update,
+                }))
+              });
+              window.localStorage.setItem('resistanceEngineGameName', gameName)
+              window.localStorage.setItem('resistanceEngineUserName', userName)
+            })
+            .catch(error => {
+              // console.error("Error writing document: ", error);
+              console.log(error)
             });
-            window.localStorage.setItem('resistanceEngineGameName', gameName)
-            window.localStorage.setItem('resistanceEngineUserName', userName)
-          })
-          .catch(error => {
-            // console.error("Error writing document: ", error);
-            console.log(error)
-          });
+          } else {
+            alert('This game has already started so you cannot join')
+            return;     
+          }
         } else {
-          alert('This game has already started so you cannot join')
-          return;     
+          alert('Game not found')
+          return;
         }
-      } else {
-        alert('Game not found')
-        return;
-      }
-    }).catch(function(error) {
-        console.log("Error getting document:", error);
-    });
+      }).catch(function(error) {
+          console.log("Error getting document:", error);
+      });
+    }
   }
 
   const handleFindGame = (gameName) => {
@@ -120,31 +128,32 @@ function FirebaseProvider(props) {
   }
 
   const handleSetSpies = (gameName, players) => {
-    // First assign random spies
-    let spies = 2;
+    // // First assign random spies
+    // let spies = 2;
     
-    switch(players) {
-      case 5:
-      case 6:
-        spies = 2;
-        break
-      case 7:
-      case 8:
-      case 9:
-        spies = 3;
-        break;
-      case 10:
-        spies = 4
-        break;
-      default:
-        spies = 2;
-    }
+    // switch(players) {
+    //   case 5:
+    //   case 6:
+    //     spies = 2;
+    //     break
+    //   case 7:
+    //   case 8:
+    //   case 9:
+    //     spies = 3;
+    //     break;
+    //   case 10:
+    //     spies = 4
+    //     break;
+    //   default:
+    //     spies = 2;
+    // }
+    // console.log(howManySpies(players))
     let randomArray = [];
     let i;
-    for (i = 0; i < spies; i++) {
+    for (i = 0; i < howManySpies(players); i++) {
       const randomNumber = Math.floor(Math.random() * players.length)
       if ( !randomArray.includes(randomNumber) ) {
-        randomArray.push(randomNumber)
+        return randomArray.push(randomNumber)
       }
     }
 
@@ -229,7 +238,6 @@ function FirebaseProvider(props) {
 
   // Players Vote
   const handleSetReveal = (gameName, roundNumber, index, vote) => {
-    console.log(vote)
     const collection = firestore.collection(pageCollection).doc(gameName)
     const dynamicApproval = `round${roundNumber}Reveal`;
     collection.update({
