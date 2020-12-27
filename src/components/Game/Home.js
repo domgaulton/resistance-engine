@@ -1,6 +1,7 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { FirebaseConsumer } from "../../context/FirebaseProvider";
-import howManyVotes from '../../helpers/howManyVotes'
+import howManyNominations from '../../helpers/howManyNominations'
+import howManySpiesRequired from '../../helpers/howManySpiesRequired'
 
 function Game(props) {
   const [ votes, setVotes ] = useState([]);
@@ -23,11 +24,11 @@ function Game(props) {
   const dealerName = players && players[gameObject.dealer];
   const userHasVoted = roundVote && (roundVote.find(vote => vote.index === userIndex) !== undefined)
   const spiesSet = spies && spies.length;
-  const selectionFinished = roundSelectionLength === howManyVotes(gameObject);
+  const selectionFinished = roundSelectionLength === howManyNominations(gameObject);
   const allVoted = roundVoteLength === playersLength;
   const votePassed = roundVoteLength && roundVote.filter(vote => vote.vote === true).length > playersLength / 2;
   const isAccused = roundSelection && roundSelection.includes(userIndex);
-  const allRevealed = roundRevealLength === howManyVotes(gameObject);
+  const allRevealed = roundRevealLength === howManyNominations(gameObject);
   const revealSpies = roundReveal && roundReveal.filter(vote => vote.vote === true);
   const revealSpiesLength = revealSpies && revealSpies.length;
 
@@ -46,7 +47,7 @@ function Game(props) {
   useEffect(() => {
     if (votes.length) {
       setSelection(props.game, round, votes);
-      if ( votes.length === howManyVotes(gameObject) ) {
+      if ( votes.length === howManyNominations(gameObject) ) {
         setVotes([]);
       }
     }
@@ -74,9 +75,9 @@ function Game(props) {
       return 'Waiting for admin to set spies...'
     } else if ( !selectionFinished ) {
       if ( round === 0 ) {
-        return `Spies Set! Dealer to select ${howManyVotes(gameObject)} names...`
+        return `Spies Set! Dealer to select ${howManyNominations(gameObject)} names...`
       } else {
-        return `Dealer to select ${howManyVotes(gameObject)} names...`
+        return `Dealer to select ${howManyNominations(gameObject)} names...`
       }
     } else if ( !allVoted ) {
       return 'Names Selected - Are you happy with selection?'
@@ -84,11 +85,11 @@ function Game(props) {
       if ( !votePassed ) {
         return 'Votes did not pass - dealer to pass'
       } else {
-        return 'Votes have passed - waiting for players to reveal'
+        return `Votes have passed - waiting for players to reveal. ${howManySpiesRequired(gameObject)} sp${howManySpiesRequired(gameObject) === 1 ? 'y' : 'ies'} need to sabotage!`;
       }
       
     } else if ( allRevealed ) {
-      if ( revealSpiesLength ) {
+      if ( revealSpiesLength === howManySpiesRequired(gameObject) ) {
         return `Round lost - ${revealSpiesLength} spy card${revealSpiesLength > 1 ? 's' : ''}! - Waiting for dealer to pass!`
       } else {
         return `Round won (No spy cards played) - Waiting for dealer to pass!`
@@ -187,7 +188,7 @@ function Game(props) {
           })}
         </div>
         <div>
-          {howManyVotes(gameObject) === roundVoteLength ? (
+          {howManyNominations(gameObject) === roundVoteLength ? (
             <p>Total Votes for Spies: {roundVote.filter(item => item.vote === 1).length}</p>
           ) : null}
         </div>
@@ -209,7 +210,7 @@ function Game(props) {
                 key={index}
                 className={roundSelection && roundSelection.includes(index) ? 'voted' : ''}
               >
-                {userIndex === dealer && roundSelectionLength !== howManyVotes(gameObject) ? (
+                {userIndex === dealer && roundSelectionLength !== howManyNominations(gameObject) ? (
                   <button className="button button--vote" disabled={votes.includes(index)} onClick={() => handleVoteClick(index)}>{nameObject}</button>
                 ) : (
                   nameObject
