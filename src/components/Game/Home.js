@@ -36,7 +36,6 @@ function Game(props) {
   const isDealer = userIndex === dealer;
   
   const handleSetSpies = () => {
-    console.log(gameObject, gameName, players)
     setSpies(gameName, players);
   }
 
@@ -98,6 +97,14 @@ function Game(props) {
     return spy;
   }
 
+  const getOtherSpies = () => {
+    let spyArray = []
+    spies.map(spyIndex => {
+      spyArray.push(` ${players[spyIndex]}`)
+    })
+    return spyArray;
+  }
+
   const handleRoundVote = (bool) => {
     setVote(props.game, gameObject.round, userIndex, bool);
   }
@@ -128,7 +135,6 @@ function Game(props) {
 
   const handleNextRound = () => {
     const spies = roundReveal.filter(vote => vote.vote === true);
-    console.log(spies)
     // TO DO - get how many spies required
     const spiesPassed = spies.length > 0
     console.log(props.game, spiesPassed)
@@ -188,7 +194,12 @@ function Game(props) {
         </ul>
 
         {spiesSet ? (
-          <h3>You are {resistanceOrSpy() ? 'a spy!' : 'in the resistance!'}</h3>
+          <React.Fragment>
+            <h3>You are {resistanceOrSpy() ? 'a spy!' : 'in the resistance!'}</h3>
+            {resistanceOrSpy() ? (
+              <p>{`The spies are; ${getOtherSpies()}`}</p>
+            ) : null}
+          </React.Fragment>
         ) : (
           null
         )}

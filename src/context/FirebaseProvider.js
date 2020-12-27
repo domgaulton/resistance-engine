@@ -9,11 +9,26 @@ const pageCollection = process.env.REACT_APP_FIREBASE_PAGE_COLLECTION;
 
 function FirebaseProvider(props) {
 
-  const handleCreateGame = (gameName, adminName) => {
-    console.log(gameName, pageCollection)
+  const validatePrompt = (promptText) => {
+    let input = prompt(promptText);
+
+    if (input == null || input == "") {
+      alert("You must enter a name!");
+      return validatePrompt(promptText);
+    } else if (!/^[a-zA-Z0-9]+$/.test(input)) {
+      alert("Please only enter letters or numbers");
+      return validatePrompt(promptText)
+    }
+    return input
+  }
+
+  const handleCreateGame = () => {
+    const gameName = validatePrompt('What is the name of the game?')
+    const adminName = validatePrompt('What is your name?')
     firestore.collection(pageCollection).doc(gameName).set({
       gameName,
       admin: adminName,
+      gameStarted: false,
       players: [
         adminName
       ],
@@ -27,7 +42,6 @@ function FirebaseProvider(props) {
         includeMetadataChanges: true
       },response => {
         const update = response.data();
-        // console.log(update)
         setPageState(prevState => ({
           ...prevState,
           gameObject: update,
@@ -42,30 +56,46 @@ function FirebaseProvider(props) {
     });
   }
 
-  const handleJoinGame = (gameName) => {
-    const collection = firestore.collection(pageCollection).doc(gameName)
-    const userName = prompt('What is your username?');
-    console.log(collection.firestore)
-    collection.update({
-      players: firebase.firestore.FieldValue.arrayUnion(userName)
-    })
-    .then(() => {
-      firestore.collection(pageCollection).doc(gameName)
-      .onSnapshot({
-        includeMetadataChanges: true
-      },response => {
+  const handleJoinGame = () => {
+    const gameName = validatePrompt('What is name of the game?')
+    const checkCollection = firestore.collection(pageCollection).doc(gameName)
+    checkCollection.get().then(response => {
+      if (response.exists) {
         const update = response.data();
-        setPageState(prevState => ({
-          ...prevState,
-          gameObject: update,
-        }))
-      });
-      window.localStorage.setItem('resistanceEngineGameName', gameName)
-      window.localStorage.setItem('resistanceEngineUserName', userName)
-    })
-    .catch(error => {
-      // console.error("Error writing document: ", error);
-      console.log(error)
+        if ( !update.gameStarted ) {
+          const userName = validatePrompt('What is your name?')
+          const collection = firestore.collection(pageCollection).doc(gameName)
+          collection.update({
+            players: firebase.firestore.FieldValue.arrayUnion(userName),
+          })
+          .then(() => {
+            firestore.collection(pageCollection).doc(gameName)
+            .onSnapshot({
+              includeMetadataChanges: true
+            },response => {
+              const update = response.data();
+              setPageState(prevState => ({
+                ...prevState,
+                gameObject: update,
+              }))
+            });
+            window.localStorage.setItem('resistanceEngineGameName', gameName)
+            window.localStorage.setItem('resistanceEngineUserName', userName)
+          })
+          .catch(error => {
+            // console.error("Error writing document: ", error);
+            console.log(error)
+          });
+        } else {
+          alert('This game has already started so you cannot join')
+          return;     
+        }
+      } else {
+        alert('Game not found')
+        return;
+      }
+    }).catch(function(error) {
+        console.log("Error getting document:", error);
     });
   }
 
@@ -92,7 +122,6 @@ function FirebaseProvider(props) {
 
   const handleSetSpies = (gameName, players) => {
     // First assign random spies
-    console.log(howManySpies(players))
     let spies = 2;
     
     switch(players) {
@@ -122,6 +151,7 @@ function FirebaseProvider(props) {
 
     const collection = firestore.collection(pageCollection).doc(gameName);
     collection.update({
+      gameStarted: true,
       spies: randomArray,
       dealer: Math.floor(Math.random() * players.length),
     })
@@ -152,7 +182,6 @@ function FirebaseProvider(props) {
   const handleSetSelection = (gameName, roundNumber, votes) => {
     const collection = firestore.collection(pageCollection).doc(gameName)
     const dynamicRound = `round${roundNumber}Selection`;
-    console.log(votes)
     collection.update({
       [dynamicRound]: votes,
     })
