@@ -4,7 +4,7 @@ import howManyVotes from '../../helpers/howManyVotes'
 
 function Game(props) {
   const [ votes, setVotes ] = useState([]);
-  const [ playedHand, setPlayedHand ] = useState(false);
+  const [ characterRevealed, setCharacterRevealed ] = useState(false)
   const { gameObject, findGame, setSpies, setSelection, setVote, setReveal, nextRound, passDealer, resetApp } = useContext(FirebaseConsumer);
 
   // Game Info
@@ -51,6 +51,17 @@ function Game(props) {
       }
     }
   }, [setSelection, props.game, round, votes]);
+
+  useEffect(() => {
+    if ( characterRevealed === true ) {
+      let timer1 = setTimeout(() => setCharacterRevealed(false), 2000)
+
+      return () => {
+        clearTimeout(timer1)
+      }
+    }
+    
+  }, [characterRevealed])
 
   const resetLocalStorage = () => {
     window.localStorage.removeItem('resistanceEngineGameName');
@@ -115,7 +126,19 @@ function Game(props) {
 
   const handleRoundReveal = vote => {
     setReveal(props.game, gameObject.round, userIndex, vote)
-    setPlayedHand(true)
+  }
+
+  const hasUserRevealed = () => {
+    const userReveal = roundReveal && roundReveal.find(vote => vote.index === userIndex);
+    if ( userReveal ) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  const showHideCharacter = (e) => {
+    setCharacterRevealed(true)
   }
 
   const showVotes = index => {
@@ -175,19 +198,24 @@ function Game(props) {
 
         <ul>
           {gameObject.players && gameObject.players.map((player, index) => {
-            return (
-              <li 
-                key={player}
-                className={roundSelection && roundSelection.includes(index) ? 'voted' : ''}
-              >
-                {userIndex === dealer && roundSelectionLength !== howManyVotes(gameObject) ? (
-                  <button className="button button--vote" disabled={votes.includes(index)} onClick={() => handleVoteClick(index)}>Vote</button>
-                ) : (
-                  null
-                )}
+            const nameObject = (
+              <React.Fragment>
                 {gameObject.dealer === index ? '* ' : ''} 
                 {player}
                 {allVoted ? showVotes(index) : null}
+              </React.Fragment>
+            )
+            return (
+              <li 
+                key={index}
+                className={roundSelection && roundSelection.includes(index) ? 'voted' : ''}
+              >
+                {userIndex === dealer && roundSelectionLength !== howManyVotes(gameObject) ? (
+                  <button className="button button--vote" disabled={votes.includes(index)} onClick={() => handleVoteClick(index)}>{nameObject}</button>
+                ) : (
+                  nameObject
+                )}
+                
               </li>
             )
           })}
@@ -195,10 +223,14 @@ function Game(props) {
 
         {spiesSet ? (
           <React.Fragment>
-            <h3>You are {resistanceOrSpy() ? 'a spy!' : 'in the resistance!'}</h3>
-            {resistanceOrSpy() ? (
-              <p>{`The spies are; ${getOtherSpies()}`}</p>
-            ) : null}
+            {characterRevealed ? (
+              <React.Fragment>
+                <h3>You are {resistanceOrSpy() ? 'a spy!' : 'in the resistance!'}</h3>
+                {resistanceOrSpy() ? (
+                  <p>{`(The other spies are; ${getOtherSpies()}`})</p>
+                ) : null}
+              </React.Fragment>
+            ) : <button className="button button--action" onClick={() => showHideCharacter()}>Reveal my role</button> }
           </React.Fragment>
         ) : (
           null
@@ -209,7 +241,7 @@ function Game(props) {
             <React.Fragment>
               <p>Vote didn't pass</p>
               <div className="button-wrapper">
-                <button className="button button--neutral" onClick={() => handlePassDealer()}>Pass the Dealer</button>
+                <button className="button button--action" onClick={() => handlePassDealer()}>Pass the Dealer</button>
               </div>
             </React.Fragment>
           ) : null
@@ -231,8 +263,8 @@ function Game(props) {
               <React.Fragment>
                 <p>Vote was passed and you were nominated - What card will you play?</p>
                 <div className="button-wrapper">
-                  <button className="button button--positive" disabled={playedHand} onClick={() => handleRoundReveal(false)}>Resistance</button>
-                  <button className="button button--negative" disabled={playedHand || resistanceOrSpy() === false} onClick={() => handleRoundReveal(true)}>Spy</button>
+                  <button className="button button--positive" disabled={hasUserRevealed()} onClick={() => handleRoundReveal(false)}>Resistance</button>
+                  <button className="button button--negative" disabled={hasUserRevealed() || resistanceOrSpy() === false} onClick={() => handleRoundReveal(true)}>Spy</button>
                 </div>
               </React.Fragment>
             ) : (
@@ -257,7 +289,7 @@ function Game(props) {
           <div>
             <h3>As Admin - Click to randomly allocate spies and the dealer</h3>
             <div className="button-wrapper">
-              <button className="button button--neutral" disabled={gameObject.players.length < 5} onClick={() => handleSetSpies()}>Set Spies</button>
+              <button className="button button--action" disabled={gameObject.players.length < 5} onClick={() => handleSetSpies()}>Set Spies</button>
             </div>
           </div>
         ) : (
