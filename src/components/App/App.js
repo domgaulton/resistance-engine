@@ -13,22 +13,26 @@ function App(props) {
   // };
 
   const handleCreateGame = () => {
-    const gameName = prompt('Unique name for your game?');
-    const userName = prompt('Unique name for your user name?');
-    if (gameName && userName) {
-      createGame(gameName, userName);
-    } else {
-      return;
-    }
+    // const gameName = prompt('Unique name for your game?');
+    // const userName = prompt('Unique name for your user name?');
+    // if (gameName && userName) {
+    //   createGame(gameName, userName);
+    // } else {
+    //   return;
+    // }
+
+    createGame();
   }
 
   const handleJoinGame = () => {
-    const gameName = prompt('What is the name of your game?');
-    if ( gameName ) {
-      joinGame(gameName);
-    } else {
-      return;
-    }
+    // const gameName = prompt('What is the name of your game?');
+    // if ( gameName ) {
+    //   joinGame(gameName);
+    // } else {
+    //   return;
+    // }
+
+    joinGame();
   }
 
   // console.log(gameObject, window.localStorage.getItem('resistanceEngine'))
