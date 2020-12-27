@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { firestore, firebase } from "../firebase/firebase";
+import howManySpies from '../helpers/howManySpies';
 
 const Context = React.createContext();
 export const FirebaseConsumer = Context;
@@ -127,31 +128,12 @@ function FirebaseProvider(props) {
   }
 
   const handleSetSpies = (gameName, players) => {
-    // First assign random spies
-    let spies = 2;
-    
-    switch(players) {
-      case 5:
-      case 6:
-        spies = 2;
-        break
-      case 7:
-      case 8:
-      case 9:
-        spies = 3;
-        break;
-      case 10:
-        spies = 4
-        break;
-      default:
-        spies = 2;
-    }
     let randomArray = [];
     let i;
-    for (i = 0; i < spies; i++) {
+    for (i = 0; i < howManySpies(players); i++) {
       const randomNumber = Math.floor(Math.random() * players.length)
       if ( !randomArray.includes(randomNumber) ) {
-        randomArray.push(randomNumber)
+        return randomArray.push(randomNumber)
       }
     }
 
@@ -236,7 +218,6 @@ function FirebaseProvider(props) {
 
   // Players Vote
   const handleSetReveal = (gameName, roundNumber, index, vote) => {
-    console.log(vote)
     const collection = firestore.collection(pageCollection).doc(gameName)
     const dynamicApproval = `round${roundNumber}Reveal`;
     collection.update({
@@ -262,7 +243,6 @@ function FirebaseProvider(props) {
 
   // Next Round
   const handleNextRound = (gameName, round, vote, dealer) => {
-    console.log(vote)
     const collection = firestore.collection(pageCollection).doc(gameName)
     collection.update({
       rounds: firebase.firestore.FieldValue.arrayUnion({round, vote}),
@@ -291,7 +271,6 @@ function FirebaseProvider(props) {
   const handlePassDealer = (gameName, round, dealer) => {
     const dynamicSelection = `round${round}Selection`;
     const dynamicVote = `round${round}Vote`;
-    console.log(dynamicSelection, dynamicVote)
     const collection = firestore.collection(pageCollection).doc(gameName)
     collection.update({
       [dynamicSelection]: firebase.firestore.FieldValue.delete(),
@@ -317,7 +296,6 @@ function FirebaseProvider(props) {
   }
 
   const handleResetApp = () => {
-    console.log('reset')
     setPageState(prevState => ({
       ...prevState,
       gameObject: {},
