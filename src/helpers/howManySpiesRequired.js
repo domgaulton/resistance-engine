@@ -19,8 +19,10 @@ export default gameObject => {
           break
         case 4:
           spies = 1;
+          break
         default:
           spies = 1;
+          break
       }
       break
     default:
