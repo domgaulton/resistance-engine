@@ -9,93 +9,100 @@ const pageCollection = process.env.REACT_APP_FIREBASE_PAGE_COLLECTION;
 function FirebaseProvider(props) {
 
   const validatePrompt = (promptText) => {
-    let input = prompt(promptText);
-
-    if (input === null || input === "") {
+    const input = prompt(promptText);
+    if ( input === null ) {
+      return;
+    } else if (input === "") {
       alert("You must enter a name!");
       return validatePrompt(promptText);
     } else if (!/^[a-zA-Z0-9]+$/.test(input)) {
       alert("Please only enter letters or numbers");
       return validatePrompt(promptText)
     }
-    return input
+    return input;
   }
 
   const handleCreateGame = () => {
     const gameName = validatePrompt('What is the name of the game?')
-    const adminName = validatePrompt('What is your name?')
-    firestore.collection(pageCollection).doc(gameName).set({
-      gameName,
-      admin: adminName,
-      gameStarted: false,
-      players: [
-        adminName
-      ],
-      round: 0,
-      dealer: '',
-      rounds: [],
-    })
-    .then(() => {
-      firestore.collection(pageCollection).doc(gameName)
-      .onSnapshot({
-        includeMetadataChanges: true
-      },response => {
-        const update = response.data();
-        setPageState(prevState => ({
-          ...prevState,
-          gameObject: update,
-        }))
-      });
-      window.localStorage.setItem('resistanceEngineGameName', gameName)
-      window.localStorage.setItem('resistanceEngineUserName', adminName)
-    })
-    .catch(error => {
-      // console.error("Error writing document: ", error);
-      console.log(error)
-    });
+    if ( gameName ) {
+      const adminName = validatePrompt('What is your name?')
+      if ( adminName ) {
+        firestore.collection(pageCollection).doc(gameName).set({
+          gameName,
+          admin: adminName,
+          gameStarted: false,
+          players: [
+            adminName
+          ],
+          round: 0,
+          dealer: '',
+          rounds: [],
+        })
+        .then(() => {
+          firestore.collection(pageCollection).doc(gameName)
+          .onSnapshot({
+            includeMetadataChanges: true
+          },response => {
+            const update = response.data();
+            setPageState(prevState => ({
+              ...prevState,
+              gameObject: update,
+            }))
+          });
+          window.localStorage.setItem('resistanceEngineGameName', gameName)
+          window.localStorage.setItem('resistanceEngineUserName', adminName)
+        })
+        .catch(error => {
+          // console.error("Error writing document: ", error);
+          console.log(error)
+        });
+      }
+    }
   }
 
   const handleJoinGame = () => {
     const gameName = validatePrompt('What is name of the game?')
-    const checkCollection = firestore.collection(pageCollection).doc(gameName)
-    checkCollection.get().then(response => {
-      if (response.exists) {
-        const update = response.data();
-        if ( !update.gameStarted ) {
-          const userName = validatePrompt('What is your name?')
-          const collection = firestore.collection(pageCollection).doc(gameName)
-          collection.update({
-            players: firebase.firestore.FieldValue.arrayUnion(userName),
-          })
-          .then(() => {
-            firestore.collection(pageCollection).doc(gameName)
-            .onSnapshot({
-              includeMetadataChanges: true
-            },response => {
-              const update = response.data();
-              setPageState(prevState => ({
-                ...prevState,
-                gameObject: update,
-              }))
+    if ( gameName ) {
+      const checkCollection = firestore.collection(pageCollection).doc(gameName)
+      checkCollection.get().then(response => {
+        if (response.exists) {
+          const update = response.data();
+          if ( !update.gameStarted ) {
+            const userName = validatePrompt('What is your name?')
+            const collection = firestore.collection(pageCollection).doc(gameName)
+            collection.update({
+              players: firebase.firestore.FieldValue.arrayUnion(userName),
+            })
+            .then(() => {
+              firestore.collection(pageCollection).doc(gameName)
+              .onSnapshot({
+                includeMetadataChanges: true
+              },response => {
+                const update = response.data();
+                setPageState(prevState => ({
+                  ...prevState,
+                  gameObject: update,
+                }))
+              });
+              window.localStorage.setItem('resistanceEngineGameName', gameName)
+              window.localStorage.setItem('resistanceEngineUserName', userName)
+            })
+            .catch(error => {
+              // console.error("Error writing document: ", error);
+              console.log(error)
             });
-            window.localStorage.setItem('resistanceEngineGameName', gameName)
-            window.localStorage.setItem('resistanceEngineUserName', userName)
-          })
-          .catch(error => {
-            // console.error("Error writing document: ", error);
-            console.log(error)
-          });
+          } else {
+            alert('This game has already started so you cannot join')
+            return;     
+          }
         } else {
-          alert('This game has already started so you cannot join')
-          return;     
+          alert('Game not found')
+          return;
         }
-      } else {
-        alert('Game not found')
-        return;
-      }
-    }).catch(function(error) {
-        console.log("Error getting document:", error);
-    });
+      }).catch(function(error) {
+          console.log("Error getting document:", error);
+      });
+    }
   }
 
   const handleFindGame = (gameName) => {

@@ -183,7 +183,7 @@ function Game(props) {
           {[...Array(5)].map((item, index) => {
             const roundVoted = gameObject.rounds && gameObject.rounds[index] !== undefined;
             return (
-              <div className={`gameScreen__round-marker ${roundVoted ? gameObject.rounds[index].vote ? 'lost' : 'won' : ''}`} />
+              <div key={index} className={`gameScreen__round-marker ${roundVoted ? gameObject.rounds[index].vote ? 'lost' : 'won' : ''}`} />
             )
           })}
         </div>
