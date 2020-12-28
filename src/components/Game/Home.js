@@ -32,10 +32,27 @@ function Game(props) {
   const revealSpies = roundReveal && roundReveal.filter(vote => vote.vote === true);
   const revealSpiesLength = revealSpies && revealSpies.length;
 
-  const roundsWonBySpies = gameObject.rounds && gameObject.rounds.filter(vote => vote.vote === true)
-  const roundsWonBySpiesLength = roundsWonBySpies && roundsWonBySpies.length
-  const roundsWonByResistance = gameObject.rounds && gameObject.rounds.filter(vote => vote.vote === false)
-  const roundsWonByResistanceLength = roundsWonByResistance && roundsWonByResistance.length
+  const howManyRounds = 5;  
+  const roundWins = [...Array(howManyRounds)].map((item, index) => {
+
+    const roundData = gameObject[`round${index}Reveal`];
+    const nomiationsRequired = howManyNominations({players, round: index})
+    const roundVotes = roundData && roundData.length;
+    let spyWins = undefined;
+    if ( roundVotes === nomiationsRequired ) {
+      const spiesRequired = howManySpiesRequired({players, round: index});
+      const spiesRevealed = roundData.filter(item => item.vote === true).length
+      if ( spiesRevealed >= spiesRequired ) {
+        spyWins = 1;
+      } else {
+        spyWins = 0;
+      }
+    }
+    return spyWins
+  })
+
+  const roundsWonBySpiesLength = roundWins.filter(item => item === 1).length;
+  const roundsWonByResistanceLength = roundWins.filter(item => item === 0).length;
 
   // Personal Info
   const isAdmin = userName === admin;
@@ -171,14 +188,11 @@ function Game(props) {
   }
 
   const handleNextRound = () => {
-    const spies = roundReveal.filter(vote => vote.vote === true);
-    // TO DO - get how many spies required
-    const spiesPassed = spies.length > 0
     let nextDealer = dealer + 1;
     if ( nextDealer >= playersLength ) {
       nextDealer = 0;
     }
-    nextRound(props.game, round, spiesPassed, nextDealer)
+    nextRound(props.game, round, nextDealer)
   }
 
   const handlePassDealer = () => {
@@ -194,22 +208,9 @@ function Game(props) {
       <div className="gameScreen">
         <h1>{gameObject.gameName}</h1>
         <div className="gameScreen__rounds">
-          {[...Array(5)].map((item, index) => {
-            const roundData = gameObject[`round${index}Reveal`];
-            const nomiationsRequired = howManyNominations({players, round: index})
-            const roundVotes = roundData && roundData.length;
-            let roundWon = undefined;
-            if ( roundVotes === nomiationsRequired ) {
-              const spiesRequired = howManySpiesRequired({players, round: index});
-              const spiesRevealed = roundData.filter(item => item.vote === true).length
-              if ( spiesRevealed >= spiesRequired ) {
-                roundWon = true;
-              } else {
-                roundWon = false;
-              }
-            }
+          {[...Array(howManyRounds)].map((item, index) => {
             return (
-              <div key={index} className={`gameScreen__round-marker ${roundWon !== undefined ? roundWon ? 'lost' : 'won' : ''}`} />
+              <div key={index} className={`gameScreen__round-marker ${roundWins[index] !== undefined ? roundWins[index] ? 'lost' : 'won' : ''}`} />
             )
           })}
         </div>
@@ -221,7 +222,7 @@ function Game(props) {
         ) : (
           <React.Fragment>
             <div>
-              {howManyNominations(gameObject) === roundVoteLength ? (
+              {howManyNominations(gameObject) === roundRevealLength ? (
                 <p>Total Votes for Spies: {roundVote.filter(item => item.vote === 1).length}</p>
               ) : null}
             </div>
@@ -264,7 +265,7 @@ function Game(props) {
                       <p>{`(The other spies are; ${getOtherSpies()}`})</p>
                     ) : null}
                   </React.Fragment>
-                ) : <div className="button-wrapper"><button className="button button--action" onClick={() => showHideCharacter()}>Reveal my role</button></div> }
+                ) : <div className="button-wrapper"><button className="button button--primary" onClick={() => showHideCharacter()}>Reveal my role</button></div> }
               </React.Fragment>
             ) : (
               null
@@ -285,7 +286,7 @@ function Game(props) {
 
             {allRevealed ? (
               isDealer ? (
-                <button className="button button--neutral" onClick={() => handleNextRound()}>Pass the Dealer</button>
+                <button className="button button--action" onClick={() => handleNextRound()}>Pass the Dealer</button>
               ) : (
                 null
               )
