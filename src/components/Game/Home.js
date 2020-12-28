@@ -32,6 +32,11 @@ function Game(props) {
   const revealSpies = roundReveal && roundReveal.filter(vote => vote.vote === true);
   const revealSpiesLength = revealSpies && revealSpies.length;
 
+  const roundsWonBySpies = gameObject.rounds && gameObject.rounds.filter(vote => vote.vote === true)
+  const roundsWonBySpiesLength = roundsWonBySpies && roundsWonBySpies.length
+  const roundsWonByResistance = gameObject.rounds && gameObject.rounds.filter(vote => vote.vote === false)
+  const roundsWonByResistanceLength = roundsWonByResistance && roundsWonByResistance.length
+
   // Personal Info
   const isAdmin = userName === admin;
   const isDealer = userIndex === dealer;
@@ -110,11 +115,19 @@ function Game(props) {
   }
 
   const getOtherSpies = () => {
-    let spyArray = []
-    spies.map(spyIndex => {
-      return spyArray.push(` ${players[spyIndex]}`)
+    let spyString = ''
+    spies.map((spyIndex, index) => {
+      let spyName = ''
+      if (index + 1 === spies.length) {
+        spyName = ` and ${players[spyIndex]}`;
+      } else if ( index  === spies.length ) {
+        spyName = `, ${players[spyIndex]}`;
+      } else {
+        spyName = `${players[spyIndex]}`;
+      }
+      return spyString += spyName;
     })
-    return spyArray;
+    return spyString;
   }
 
   const handleRoundVote = (bool) => {
@@ -179,130 +192,152 @@ function Game(props) {
   return (
     <React.Fragment>
       <div className="gameScreen">
+        <h1>{gameObject.gameName}</h1>
         <div className="gameScreen__rounds">
           {[...Array(5)].map((item, index) => {
-            const roundVoted = gameObject.rounds && gameObject.rounds[index] !== undefined;
+            const roundData = gameObject[`round${index}Reveal`];
+            const nomiationsRequired = howManyNominations({players, round: index})
+            const roundVotes = roundData && roundData.length;
+            let roundWon = undefined;
+            if ( roundVotes === nomiationsRequired ) {
+              const spiesRequired = howManySpiesRequired({players, round: index});
+              const spiesRevealed = roundData.filter(item => item.vote === true).length
+              if ( spiesRevealed >= spiesRequired ) {
+                roundWon = true;
+              } else {
+                roundWon = false;
+              }
+            }
             return (
-              <div key={index} className={`gameScreen__round-marker ${roundVoted ? gameObject.rounds[index].vote ? 'lost' : 'won' : ''}`} />
+              <div key={index} className={`gameScreen__round-marker ${roundWon !== undefined ? roundWon ? 'lost' : 'won' : ''}`} />
             )
           })}
         </div>
-        <div>
-          {howManyNominations(gameObject) === roundVoteLength ? (
-            <p>Total Votes for Spies: {roundVote.filter(item => item.vote === 1).length}</p>
-          ) : null}
-        </div>
-        <h1>{gameObject.gameName}</h1>
-        <h2>Round {gameObject.round + 1}{dealer !== '' ? ` - ${dealerName} is the dealer` : ''}</h2>
-        <h3>{getRoundPhase()}</h3>
-
-        <p><strong>Players:</strong></p>
-        <ul>
-          {gameObject.players && gameObject.players.map((player, index) => {
-            const nameObject = (
-              <React.Fragment>
-                {gameObject.dealer === index ? '* ' : ''} 
-                {player}
-                {allVoted ? showVotes(index) : null}
-              </React.Fragment>
-            )
-            return (
-              <li 
-                key={index}
-                className={roundSelection && roundSelection.includes(index) ? 'voted' : ''}
-              >
-                {userIndex === dealer && roundSelectionLength !== howManyNominations(gameObject) ? (
-                  <button className="button button--vote" disabled={votes.includes(index)} onClick={() => handleVoteClick(index)}>{nameObject}</button>
-                ) : (
-                  nameObject
-                )}
-                
-              </li>
-            )
-          })}
-        </ul>
-
-        {spiesSet ? (
+        {(roundsWonBySpiesLength >= 3 || roundsWonByResistanceLength >= 3) ? (
           <React.Fragment>
-            {characterRevealed ? (
-              <React.Fragment>
-                <h3>You are {resistanceOrSpy() ? 'a spy!' : 'in the resistance!'}</h3>
-                {resistanceOrSpy() ? (
-                  <p>{`(The other spies are; ${getOtherSpies()}`})</p>
-                ) : null}
-              </React.Fragment>
-            ) : <div className="button-wrapper"><button className="button button--action" onClick={() => showHideCharacter()}>Reveal my role</button></div> }
+            <h1>{`The ${roundsWonBySpiesLength >= 3 ? 'spies have' : 'resistance has'} won!`}</h1>
+            <p>{`The spies were ${getOtherSpies()}`}!</p>
           </React.Fragment>
         ) : (
-          null
-        )}
+          <React.Fragment>
+            <div>
+              {howManyNominations(gameObject) === roundVoteLength ? (
+                <p>Total Votes for Spies: {roundVote.filter(item => item.vote === 1).length}</p>
+              ) : null}
+            </div>
+            
+            <h2>Round {gameObject.round + 1}{dealer !== '' ? ` - ${dealerName} is the dealer` : ''}</h2>
+            <h3>{getRoundPhase()}</h3>
 
-        {isDealer ? (
-          allVoted && !votePassed ? (
-            <React.Fragment>
-              <p>Vote didn't pass</p>
-              <div className="button-wrapper">
-                <button className="button button--action" onClick={() => handlePassDealer()}>Pass the Dealer</button>
-              </div>
-            </React.Fragment>
-          ) : null
-        ) : (
-          null
-        )}
+            <p><strong>Players:</strong></p>
+            <ul>
+              {gameObject.players && gameObject.players.map((player, index) => {
+                const nameObject = (
+                  <React.Fragment>
+                    {gameObject.dealer === index ? '* ' : ''} 
+                    {player}
+                    {allVoted ? showVotes(index) : null}
+                  </React.Fragment>
+                )
+                return (
+                  <li 
+                    key={index}
+                    className={roundSelection && roundSelection.includes(index) ? 'voted' : ''}
+                  >
+                    {userIndex === dealer && roundSelectionLength !== howManyNominations(gameObject) ? (
+                      <button className="button button--vote" disabled={votes.includes(index)} onClick={() => handleVoteClick(index)}>{nameObject}</button>
+                    ) : (
+                      nameObject
+                    )}
+                    
+                  </li>
+                )
+              })}
+            </ul>
 
-        {allRevealed ? (
-          isDealer ? (
-            <button className="button button--neutral" onClick={() => handleNextRound()}>Pass the Dealer</button>
-          ) : (
-            null
-          )
-        ) : null}
-
-        {allVoted ? (
-          votePassed && !allRevealed ? (
-            isAccused ? (
+            {spiesSet ? (
               <React.Fragment>
-                <p>Vote was passed and you were nominated - What card will you play?</p>
+                {characterRevealed ? (
+                  <React.Fragment>
+                    <h3>You are {resistanceOrSpy() ? 'a spy!' : 'in the resistance!'}</h3>
+                    {resistanceOrSpy() ? (
+                      <p>{`(The other spies are; ${getOtherSpies()}`})</p>
+                    ) : null}
+                  </React.Fragment>
+                ) : <div className="button-wrapper"><button className="button button--action" onClick={() => showHideCharacter()}>Reveal my role</button></div> }
+              </React.Fragment>
+            ) : (
+              null
+            )}
+
+            {isDealer ? (
+              allVoted && !votePassed ? (
+                <React.Fragment>
+                  <p>Vote didn't pass</p>
+                  <div className="button-wrapper">
+                    <button className="button button--action" onClick={() => handlePassDealer()}>Pass the Dealer</button>
+                  </div>
+                </React.Fragment>
+              ) : null
+            ) : (
+              null
+            )}
+
+            {allRevealed ? (
+              isDealer ? (
+                <button className="button button--neutral" onClick={() => handleNextRound()}>Pass the Dealer</button>
+              ) : (
+                null
+              )
+            ) : null}
+
+            {allVoted ? (
+              votePassed && !allRevealed ? (
+                isAccused ? (
+                  <React.Fragment>
+                    <p>Vote was passed and you were nominated - What card will you play?</p>
+                    <div className="button-wrapper">
+                      <button className="button button--positive" disabled={hasUserRevealed()} onClick={() => handleRoundReveal(false)}>Resistance</button>
+                      <button className="button button--negative" disabled={hasUserRevealed() || resistanceOrSpy() === false} onClick={() => handleRoundReveal(true)}>Spy</button>
+                    </div>
+                  </React.Fragment>
+                ) : (
+                  <p>Waiting for nominated players to show their hand</p>
+                )
+              ) : null
+            ) : null}
+
+            {selectionFinished && !allVoted ? (
+              <React.Fragment>
+                <p>Are you happy with this selection?</p>
                 <div className="button-wrapper">
-                  <button className="button button--positive" disabled={hasUserRevealed()} onClick={() => handleRoundReveal(false)}>Resistance</button>
-                  <button className="button button--negative" disabled={hasUserRevealed() || resistanceOrSpy() === false} onClick={() => handleRoundReveal(true)}>Spy</button>
+                  <button className="button button--positive" disabled={userHasVoted} onClick={() => handleRoundVote(true)}>Yes</button>
+                  <button className="button button--negative" disabled={userHasVoted} onClick={() => handleRoundVote(false)}>No</button>
                 </div>
               </React.Fragment>
             ) : (
-              <p>Waiting for nominated players to show their hand</p>
-            )
-          ) : null
-        ) : null}
+              null
+            )}
 
-        {selectionFinished && !allVoted ? (
-          <React.Fragment>
-            <p>Are you happy with this selection?</p>
-            <div className="button-wrapper">
-              <button className="button button--positive" disabled={userHasVoted} onClick={() => handleRoundVote(true)}>Yes</button>
-              <button className="button button--negative" disabled={userHasVoted} onClick={() => handleRoundVote(false)}>No</button>
+            {isAdmin && !spiesSet ? (
+              <div>
+                <p>As Admin - Click to randomly allocate spies and the dealer</p>
+                <div className="button-wrapper">
+                  <button className="button button--action" disabled={gameObject.players.length < 5} onClick={() => handleSetSpies()}>Set Spies</button>
+                </div>
+              </div>
+            ) : (
+              null
+            )}
+
+            <div className="gameScreen__restart-game">
+              <p>Return to homescreen - this will log you out of the game</p>
+              <div className="button-wrapper">
+                <button className="button button--end-game" onClick={() => resetLocalStorage()}>End Game</button>
+              </div>
             </div>
-          </React.Fragment>
-        ) : (
-          null
-        )}
-
-        {isAdmin && !spiesSet ? (
-          <div>
-            <p>As Admin - Click to randomly allocate spies and the dealer</p>
-            <div className="button-wrapper">
-              <button className="button button--action" disabled={gameObject.players.length < 5} onClick={() => handleSetSpies()}>Set Spies</button>
-            </div>
-          </div>
-        ) : (
-          null
-        )}
-
-        <div className="gameScreen__restart-game">
-          <p>Return to homescreen - this will log you out of the game</p>
-          <div className="button-wrapper">
-            <button className="button button--end-game" onClick={() => resetLocalStorage()}>End Game</button>
-          </div>
-        </div>
+            </React.Fragment>
+          )}
       </div>
       
     </React.Fragment>
