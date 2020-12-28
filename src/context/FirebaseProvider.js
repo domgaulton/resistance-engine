@@ -37,7 +37,6 @@ function FirebaseProvider(props) {
           ],
           round: 0,
           dealer: '',
-          rounds: [],
         })
         .then(() => {
           firestore.collection(pageCollection).doc(gameName)
@@ -242,10 +241,9 @@ function FirebaseProvider(props) {
   }
 
   // Next Round
-  const handleNextRound = (gameName, round, vote, dealer) => {
+  const handleNextRound = (gameName, round, dealer) => {
     const collection = firestore.collection(pageCollection).doc(gameName)
     collection.update({
-      rounds: firebase.firestore.FieldValue.arrayUnion({round, vote}),
       round: firebase.firestore.FieldValue.increment(1),
       dealer,
     })
@@ -313,7 +311,7 @@ function FirebaseProvider(props) {
     setSelection: (gameName, roundNumber, votes) => handleSetSelection(gameName, roundNumber, votes),
     setVote: (gameName, roundNumber, index, vote) => handleSetVote(gameName, roundNumber, index, vote),
     setReveal: (gameName, roundNumber, index, vote) => handleSetReveal(gameName, roundNumber, index, vote),
-    nextRound: (gameName, round, vote, dealer ) => handleNextRound(gameName, round, vote, dealer ),
+    nextRound: (gameName, round, dealer ) => handleNextRound(gameName, round, dealer ),
     passDealer: (gameName, round, dealer ) => handlePassDealer(gameName, round, dealer ),
     resetApp: () => handleResetApp(),
   });
