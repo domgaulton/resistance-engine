@@ -109,9 +109,8 @@ function Game(props) {
       } else {
         return `Votes have passed - waiting for players to reveal. ${howManySpiesRequired(gameObject)} sp${howManySpiesRequired(gameObject) === 1 ? 'y' : 'ies'} need to sabotage!`;
       }
-      
     } else if ( allRevealed ) {
-      if ( revealSpiesLength === howManySpiesRequired(gameObject) ) {
+      if ( revealSpiesLength >= howManySpiesRequired(gameObject) ) {
         return `Round lost - ${revealSpiesLength} spy card${revealSpiesLength > 1 ? 's' : ''}! - Waiting for dealer to pass!`
       } else {
         return `Round won (No spy cards played) - Waiting for dealer to pass!`
@@ -220,13 +219,7 @@ function Game(props) {
             <p>{`The spies were ${getOtherSpies()}`}!</p>
           </React.Fragment>
         ) : (
-          <React.Fragment>
-            <div>
-              {howManyNominations(gameObject) === roundRevealLength ? (
-                <p>Total Votes for Spies: {roundVote.filter(item => item.vote === 1).length}</p>
-              ) : null}
-            </div>
-            
+          <React.Fragment>            
             <h2>Round {gameObject.round + 1}{dealer !== '' ? ` - ${dealerName} is the dealer` : ''}</h2>
             <h3>{getRoundPhase()}</h3>
 
@@ -262,7 +255,7 @@ function Game(props) {
                   <React.Fragment>
                     <h3>You are {resistanceOrSpy() ? 'a spy!' : 'in the resistance!'}</h3>
                     {resistanceOrSpy() ? (
-                      <p>{`(The other spies are; ${getOtherSpies()}`})</p>
+                      <p>{`(The other spies are ${getOtherSpies()}`})</p>
                     ) : null}
                   </React.Fragment>
                 ) : <div className="button-wrapper"><button className="button button--primary" onClick={() => showHideCharacter()}>Reveal my role</button></div> }
