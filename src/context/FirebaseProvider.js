@@ -127,11 +127,8 @@ function FirebaseProvider(props) {
   }
 
   const getRandomNumbers = (existingArray, lengthRequired, maxNumber) => {
-    // console.log(existingArray, lengthRequired, maxNumber)
     let array = [...existingArray]
-    console.log(array);
     const randomNumber = Math.floor(Math.random() * maxNumber)
-    // console.log(randomNumber)
     if ( array.length !== lengthRequired ) {
       if ( !array.includes(randomNumber) ) {
         array.push(randomNumber)
@@ -140,16 +137,14 @@ function FirebaseProvider(props) {
         return getRandomNumbers(array, lengthRequired, maxNumber)
       }
     } else {
-      console.log(array)
       return array;
     }
   }
 
   const handleSetSpies = (gameName, players) => {
-    const randomSpies = getRandomNumbers([], 2, players.length);
+    const randomSpies = getRandomNumbers([], howManySpies(players.length), players.length);
 
     const collection = firestore.collection(pageCollection).doc(gameName);
-    console.log(collection)
     collection.update({
       gameStarted: true,
       spies: randomSpies,
