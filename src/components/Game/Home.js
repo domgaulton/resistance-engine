@@ -217,6 +217,12 @@ function Game(props) {
           <React.Fragment>
             <h1>{`The ${roundsWonBySpiesLength >= 3 ? 'spies have' : 'resistance has'} won!`}</h1>
             <p>{`The spies were ${getOtherSpies()}`}!</p>
+            <div className="gameScreen__restart-game">
+              <p>Return to homescreen - this will log you out of the game</p>
+              <div className="button-wrapper">
+                <button className="button button--end-game" onClick={() => resetLocalStorage()}>End Game</button>
+              </div>
+            </div>      
           </React.Fragment>
         ) : (
           <React.Fragment>            
