@@ -113,7 +113,11 @@ function Game(props) {
       if ( revealSpiesLength >= howManySpiesRequired(gameObject) ) {
         return `Round lost - ${revealSpiesLength} spy card${revealSpiesLength > 1 ? 's' : ''}! - Waiting for dealer to pass!`
       } else {
-        return `Round won (No spy cards played) - Waiting for dealer to pass!`
+        if ( howManySpiesRequired(gameObject) === 1 ) {
+          return `Round won (No spy cards played) - Waiting for dealer to pass!`
+        } else {
+          return `Round won (But ${revealSpiesLength} spy card${revealSpiesLength > 1 ? 's' : ''}! was played!) - Waiting for dealer to pass!`
+        }
       }
     }
     
@@ -172,7 +176,7 @@ function Game(props) {
   }
 
   const showVotes = index => {
-    let voted = ' N';
+    let voted = ' - Voted: No';
     let temp = [];
     roundVote.map(item => {
       if ( item.vote === true) {
@@ -181,7 +185,7 @@ function Game(props) {
       return temp;
     })
     if ( temp.includes(index) ) {
-      voted = ' Y';
+      voted = ' - Voted: Yes';
     }
     return voted;
   }
@@ -242,7 +246,7 @@ function Game(props) {
                 return (
                   <li 
                     key={index}
-                    className={roundSelection && roundSelection.includes(index) ? 'voted' : ''}
+                    className={`${roundSelection && roundSelection.includes(index) ? 'voted' : ''}`}
                   >
                     {userIndex === dealer && roundSelectionLength !== howManyNominations(gameObject) ? (
                       <button className="button button--vote" disabled={votes.includes(index)} onClick={() => handleVoteClick(index)}>{nameObject}</button>
