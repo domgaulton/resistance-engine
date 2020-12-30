@@ -113,7 +113,11 @@ function Game(props) {
       if ( revealSpiesLength >= howManySpiesRequired(gameObject) ) {
         return `Round lost - ${revealSpiesLength} spy card${revealSpiesLength > 1 ? 's' : ''}! - Waiting for dealer to pass!`
       } else {
-        return `Round won (No spy cards played) - Waiting for dealer to pass!`
+        if ( howManySpiesRequired(gameObject) === 1 ) {
+          return `Round won (No spy cards played) - Waiting for dealer to pass!`
+        } else {
+          return `Round won (But ${revealSpiesLength} spy card${revealSpiesLength > 1 ? 's' : ''}! was played!) - Waiting for dealer to pass!`
+        }
       }
     }
     
@@ -172,18 +176,18 @@ function Game(props) {
   }
 
   const showVotes = index => {
-    let voted = ' N';
-    let temp = [];
+    let className = 'votedNo';
+    let tempYesArray = [];
     roundVote.map(item => {
       if ( item.vote === true) {
-        temp.push(item.index);
+        tempYesArray.push(item.index);
       }
-      return temp;
+      return tempYesArray;
     })
-    if ( temp.includes(index) ) {
-      voted = ' Y';
+    if ( tempYesArray.includes(index) ) {
+      className = 'votedYes';
     }
-    return voted;
+    return className;
   }
 
   const handleNextRound = () => {
@@ -228,21 +232,18 @@ function Game(props) {
           <React.Fragment>            
             <h2>Round {gameObject.round + 1}{dealer !== '' ? ` - ${dealerName} is the dealer` : ''}</h2>
             <h3>{getRoundPhase()}</h3>
-
-            <p><strong>Players:</strong></p>
-            <ul>
+            <ul className={`${!allVoted ? 'selection-in-progress' : ''}`}>
               {gameObject.players && gameObject.players.map((player, index) => {
                 const nameObject = (
                   <React.Fragment>
                     {gameObject.dealer === index ? '* ' : ''} 
                     {player}
-                    {allVoted ? showVotes(index) : null}
                   </React.Fragment>
                 )
                 return (
                   <li 
                     key={index}
-                    className={roundSelection && roundSelection.includes(index) ? 'voted' : ''}
+                    className={`${roundSelection && roundSelection.includes(index) ? 'hasBeenNominated' : ''} ${allVoted ? showVotes(index) : ''} ${userIndex === dealer && !selectionFinished ? 'isDealer' : ''}`}
                   >
                     {userIndex === dealer && roundSelectionLength !== howManyNominations(gameObject) ? (
                       <button className="button button--vote" disabled={votes.includes(index)} onClick={() => handleVoteClick(index)}>{nameObject}</button>
