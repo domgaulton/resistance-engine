@@ -9,7 +9,7 @@ function Game(props) {
   const { gameObject, findGame, setSpies, setSelection, setVote, setReveal, nextRound, passDealer, resetApp } = useContext(FirebaseConsumer);
 
   // Game Info
-  const { gameName, round, dealer, players, admin, spies } = gameObject;
+  const { gameName, gameStarted, round, dealer, players, admin, spies } = gameObject;
   const userName = window.localStorage.getItem('resistanceEngineUserName');
   const userIndex = players && players.indexOf(userName);
   const playersLength = players && players.length;
@@ -93,34 +93,45 @@ function Game(props) {
   }
 
   const getRoundPhase = () => {
+    let message = '';
+    let instruction = '';
     if ( !spiesSet ) {
-      return 'Waiting for 5 players to sign in so that the admin can randomly allocate spies.'
+      message = 'Waiting for between 5 and 10 players to sign in so that the admin can randomly allocate spies.'
     } else if ( !selectionFinished ) {
       if ( round === 0 ) {
-        return `Spies Set! Dealer to select ${howManyNominations(gameObject)} names.`
+        message = `${howManySpiesRequired(gameObject)} spies set!`
+        instruction = `Dealer to select ${howManyNominations(gameObject)} names.`
       } else {
-        return `Dealer to select ${howManyNominations(gameObject)} names.`
+        message = `Dealer to select ${howManyNominations(gameObject)} names.`
       }
     } else if ( !allVoted ) {
-      return 'Names Selected - Are you happy with selection?'
+      message = 'Names Selected'
+      instruction = 'Are you happy with selection?'
     } else if ( !allRevealed ) {
       if ( !votePassed ) {
-        return 'Votes did not pass - dealer to pass.'
+        message = 'Votes did not pass.'
+        instruction = 'Waiting for dealer to pass.'
       } else {
-        return `Votes have passed - waiting for players to reveal. ${howManySpiesRequired(gameObject)} sp${howManySpiesRequired(gameObject) === 1 ? 'y' : 'ies'} need to sabotage!`;
+        message = 'Votes have passed - waiting for players to reveal.';
+        if ( howManySpiesRequired(gameObject) > 1 ) {
+          instruction = `${howManySpiesRequired(gameObject)} spies needed to sabotage!`
+        }
       }
     } else if ( allRevealed ) {
       if ( revealSpiesLength >= howManySpiesRequired(gameObject) ) {
-        return `Round lost - ${revealSpiesLength} spy card${revealSpiesLength > 1 ? 's' : ''}! - Waiting for dealer to pass!`
+        message = `Round lost - ${revealSpiesLength} spy card${revealSpiesLength > 1 ? 's' : ''}!`
+        instruction = 'Waiting for dealer to pass!'
       } else {
         if ( howManySpiesRequired(gameObject) === 1 ) {
-          return `Round won (No spy cards played) - Waiting for dealer to pass!`
+          message = `Round won (No spy cards played)`
+          instruction = 'Waiting for dealer to pass!'
         } else {
-          return `Round won (But ${revealSpiesLength} spy card${revealSpiesLength > 1 ? 's' : ''}! was played!) - Waiting for dealer to pass!`
+          message = `Round won (But ${revealSpiesLength} spy card${revealSpiesLength > 1 ? 's' : ''}! was played!)`
+          instruction = 'Waiting for dealer to pass!'
         }
       }
     }
-    
+    return {message, instruction}
   }
 
   const resistanceOrSpy = () => {
@@ -140,10 +151,10 @@ function Game(props) {
       let spyName = ''
       if (index + 1 === spies.length) {
         spyName = ` and ${players[spyIndex]}`;
-      } else if ( index  === spies.length ) {
-        spyName = `, ${players[spyIndex]}`;
-      } else {
+      } else if ( index + 2 === spies.length) {
         spyName = `${players[spyIndex]}`;
+      } else {
+        spyName = `${players[spyIndex]}, `;
       }
       return spyString += spyName;
     })
@@ -209,14 +220,43 @@ function Game(props) {
   return (
     <React.Fragment>
       <div className="gameScreen">
-        <h1>{gameObject.gameName}</h1>
-        <div className="gameScreen__rounds">
-          {[...Array(howManyRounds)].map((item, index) => {
-            return (
-              <div key={index} className={`gameScreen__round-marker ${roundWins[index] !== undefined ? roundWins[index] ? 'lost' : 'won' : ''}`} />
-            )
-          })}
-        </div>
+        <h1>{gameObject.gameName} {gameStarted ? `- ${players.length} players` : null}</h1>
+        {gameStarted ? (
+          <table className="gameScreen__scores">
+            <thead>
+              <tr>
+                <th></th>
+                {[...Array(howManyRounds)].map((item, index) => {
+                  return (
+                    <td key={`round-${index}`} className={index === round ? 'currentRound' : null}>{index + 1}</td>
+                  )
+                })}
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Win / Lose?</td>
+                {[...Array(howManyRounds)].map((item, index) => {
+                  return (
+                    <td key={`win-lose-${index}`} className="gameScreen__scores-row">
+                      <span className={`gameScreen__round-marker ${roundWins[index] !== undefined ? roundWins[index] ? 'lost' : 'won' : ''}`} />
+                    </td>
+                  )
+                })}
+              </tr>
+              <tr>
+                <td>Players</td>
+                {[...Array(howManyRounds)].map((item, index) => {
+                  return (
+                    <td key={`spies-${index}`}>{howManyNominations({players, round: index})} {howManySpiesRequired({players, round: index}) > 1 ? '*' : null}</td>
+                  )
+                })}
+              </tr>
+            </tbody>
+          </table>
+        ) : null}
+        
+
         {(roundsWonBySpiesLength >= 3 || roundsWonByResistanceLength >= 3) ? (
           <React.Fragment>
             <h1>{`The ${roundsWonBySpiesLength >= 3 ? 'spies have' : 'resistance has'} won!`}</h1>
@@ -231,9 +271,8 @@ function Game(props) {
         ) : (
           <React.Fragment>            
             <h2>Round {gameObject.round + 1}{dealer !== '' ? ` - ${dealerName} is the dealer` : ''}</h2>
-            <h3>{getRoundPhase()}</h3>
+            <h3>{getRoundPhase().message}</h3>
 
-            <p><strong>Players:</strong></p>
             <ul>
               {gameObject.players && gameObject.players.map((player, index) => {
                 const nameObject = (
@@ -258,6 +297,11 @@ function Game(props) {
                 )
               })}
             </ul>
+
+            {getRoundPhase().instruction !== '' ? (
+              <h2 className="gameScreen__instruction">{getRoundPhase().instruction}</h2>
+            ) : null}
+           
 
             {spiesSet ? (
               <React.Fragment>

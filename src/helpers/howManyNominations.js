@@ -1,8 +1,12 @@
 export default gameObject => {
-
-  const players = gameObject.players && gameObject.players.length;
+  let players = 0
+  if (gameObject.players && gameObject.players.length) {
+    players = gameObject.players.length;
+  } else {
+    players = gameObject.players;
+  }
   const round = gameObject.round;
-  
+
   let nominiations;  
   switch(players) {
     

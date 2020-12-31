@@ -7,18 +7,43 @@
 
 .gameScreen {
   
-  &__rounds {
-    margin-top: 20px;
-    display: flex;
-    justify-content: space-around;
-    width: 100%;
+  h1 {
+    margin: 0;
   }
+  &__scores {
+    width: 100%;
+    margin-top: 20px;
+
+    td {
+      width: calc(100% / 6);
+      
+      span {
+        display: inline-block;
+      }
+
+      &.currentRound {
+        font-weight: bold;
+        text-decoration: underline;
+      }
+    }
+
+    &-row {
+      text-align: center;
+    }
+  }
+  // &__rounds {
+  //   margin-top: 20px;
+  //   display: flex;
+  //   justify-content: space-around;
+  //   width: 100%;
+  // }
 
   &__round-marker {
     width: 20px;
     height: 20px;
     border: 1px solid grey;
     border-radius: 10px;
+    margin-top: 10px;
 
     &.lost {
       background: #ff6961;
@@ -44,6 +69,12 @@
         margin-right: 5px;
       }
     }
+  }
+
+  &__instruction {
+    padding: 10px;
+    background: #ff1f4663;
+    color: white;
   }
 
   &__restart-game {
